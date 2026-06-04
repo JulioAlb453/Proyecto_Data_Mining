@@ -1,0 +1,27 @@
+{
+  "_comment": "Valores de referencia con ml/artifacts actuales (elasticnet + hist_gbc). Tolerancias en PRUEBA_PREDICCION_EXTERNA.md",
+  "caso_a": {
+    "regression": { "prediction": 25.59767900085319, "model": "elasticnet" },
+    "classification": {
+      "prediction": 0,
+      "probability_positive": 0.0034140680208336045,
+      "model": "hist_gbc"
+    }
+  },
+  "caso_b": {
+    "regression": { "prediction": -0.9329568945480062, "model": "elasticnet" },
+    "classification": {
+      "prediction": 0,
+      "probability_positive": 0.01765653781632998,
+      "model": "hist_gbc"
+    }
+  },
+  "caso_c": {
+    "regression": { "prediction": 4.683107332414416, "model": "elasticnet" },
+    "classification": {
+      "prediction": 0,
+      "probability_positive": 0.1374033471162688,
+      "model": "hist_gbc"
+    }
+  }
+}

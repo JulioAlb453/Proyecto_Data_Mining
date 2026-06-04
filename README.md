@@ -1,141 +1,440 @@
 # Proyecto Corte 1 Full Stack — PEF ejecución presupuestal
 
+
+
 **Alumno:** 233298 · Cruz Jiménez · Julio Alberto  
+
 **Curso:** Minería de Datos · UPCh 2026A  
+
+
 
 Producto end-to-end sobre el avance de gasto federal (**PEF**): warehouse analítico (DuckDB), EDA/preproceso, modelado (regresión + clasificación), API (FastAPI) y frontend (React).
 
-**Fuente principal:** `PEF_avance_gasto.csv` (por defecto en `Downloads`; ver `.env.example`).
+
+
+**Fuente principal:** `PEF_avance_gasto.csv` (ruta en `.env` → `PEF_RAW_CSV`; ver `.env.example`).
+
+
+
+**Informe PDF:** `report/proyecto_corte_1_full_stack_233298_cruz_jimenez_julio_alberto.pdf` (generar con `python report/build_pdf.py`).
+
+
+
+---
+
+
 
 ## Requisitos
 
-- Python 3.10+
-- Node.js 18+ (fase frontend; se documentará al crear `frontend/`)
-- Copiar o enlazar el CSV en `data/raw/` (ver `data/raw/README.md`)
 
-## Configuración inicial
+
+| Herramienta | Versión mínima |
+
+|-------------|----------------|
+
+| Python | 3.10+ (probado con 3.12/3.14 en venv local) |
+
+| Node.js | 18+ |
+
+| CSV PEF | Copia o ruta absoluta al archivo de avance de gasto 2026 |
+
+
+
+---
+
+
+
+## Configuración inicial (una vez)
+
+
 
 ```powershell
+
 cd c:\IS\DataMining_Slices_and_Code\proyecto_corte_1_full_stack_233298_cruz_jimenez_julio_alberto
+
 python -m venv venv
+
 .\venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
+
 copy .env.example .env
-# Editar .env con la ruta real a PEF_avance_gasto.csv
+
+# Editar .env: PEF_RAW_CSV=C:\ruta\a\PEF_avance_gasto.csv
+
 ```
 
-## Flujo de trabajo (por implementar)
 
-| Fase | Carpeta | Descripción |
-|------|---------|-------------|
-| 1 | `data/`, `data/processed` | Ingesta y limpieza del CSV PEF (`python -m data.run_cleaning`) |
-| 2 | `warehouse/` | ETL → `warehouse.duckdb` (hechos + dimensiones + vistas OLAP) |
-| 3 | `notebooks/` | EDA reproducible, variables derivadas (`ratio_ejecucion`, bandas de ejecución) |
-| 4 | `ml/` | Entrenamiento, evaluación y serialización de modelos (`python -m ml`) |
-| 5 | `api/` | Endpoints OLAP e inferencia (FastAPI + DuckDB) — implementado |
-| 6 | `frontend/` | Panel exploratorio y formulario de predicción en vivo |
-| 7 | `report/` | Informe PDF técnico y figuras |
 
-### Comprensión y limpieza de datos (fase 1)
+Opcional: copiar el CSV a `data/raw/PEF_avance_gasto.csv` y apuntar `PEF_RAW_CSV` ahí.
+
+
+
+---
+
+
+
+## Pipeline reproducible (orden obligatorio)
+
+
+
+Ejecutar desde la **raíz del proyecto** con el venv activado.
+
+
+
+### 1. Limpieza y perfil (`data/`)
+
+
 
 ```powershell
+
 python -m data.run_cleaning
-# Salida: data/processed/pef_limpio.parquet, pef_analitico.parquet, profile_summary.json
-# Documentación: data/PEF_PERFIL_Y_LIMPIEZA.md · Notebook: notebooks/01_data_understanding.ipynb
+
 ```
 
-### Warehouse DuckDB (fase 2)
+
+
+**Salidas:** `data/processed/pef_limpio.parquet`, `pef_analitico.parquet`, `profile_summary.json`  
+
+**Docs:** `data/PEF_PERFIL_Y_LIMPIEZA.md` · **Notebook:** `notebooks/01_data_understanding.ipynb`
+
+
+
+### 2. Warehouse DuckDB (`warehouse/`)
+
+
 
 ```powershell
+
 python -m warehouse.build
-# Salida: warehouse/warehouse.duckdb (configurable con WAREHOUSE_DB en .env)
-# Modelo: warehouse/WAREHOUSE_MODELO.md · Vistas: warehouse/sql/02_olap_views.sql
+
 ```
 
-Requiere CSV en `PEF_RAW_CSV` o `data/processed/pef_limpio.parquet` (generado por limpieza).
 
-### Modelado ML (fase 4)
+
+**Salida:** `warehouse/warehouse.duckdb` (variable `WAREHOUSE_DB` en `.env`)  
+
+**Docs:** `warehouse/WAREHOUSE_MODELO.md` · **Vistas:** `warehouse/sql/02_olap_views.sql`
+
+
+
+### 3. Modelado ML (`ml/`)
+
+
 
 ```powershell
+
 python -m ml
-# Salida: ml/artifacts/*.joblib, training_metrics.json
-# Detalle: ml/README.md
+
 ```
 
-Requiere `warehouse/warehouse.duckdb` (o parquet analítico). Compara ≥2 modelos por tarea con validación cruzada 5-fold.
 
-### API FastAPI (fase 5)
 
-Requiere `warehouse/warehouse.duckdb`. Para inferencia, ejecutar antes `python -m ml`.
+**Salidas:** `ml/artifacts/regression_model.joblib`, `classification_model.joblib`, `preprocessor.joblib`, `training_metrics.json`  
+
+**Docs:** `ml/README.md`  
+
+**Duración:** varios minutos (~150k filas; Random Forest es el más lento).
+
+Entrenamiento ligero recomendado para iterar:
 
 ```powershell
-uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+$env:ML_FAST="1"
+$env:ML_SAMPLE_SIZE="10000"
+python -m ml
 ```
+
+Ese modo usa parquet procesado, 3-fold CV, omite Random Forest y entrena sobre una muestra estratificada del dataset.
+
+
+
+| Tarea | Target | Filtro | Modelos comparados |
+
+|-------|--------|--------|-------------------|
+
+| Regresión | `ratio_ejecucion` | `filtro_modelado_programable` | ElasticNet, HistGradientBoosting, RandomForest |
+
+| Clasificación | `alta_ejecucion` (ratio ≥ 0.80) | mismo | Logistic (balanced), HistGradientBoosting, RandomForest |
+
+
+
+### 4. Informe PDF (`report/`)
+
+
+
+```powershell
+
+python report/build_pdf.py
+
+```
+
+
+
+Requiere `profile_summary.json`; incluye métricas si existe `ml/artifacts/training_metrics.json`. Figuras opcionales en `report/figures/*.png`.
+
+
+
+### 5. API FastAPI (`api/`)
+
+
+
+Requiere `warehouse/warehouse.duckdb`. Para **predicción**, ejecutar antes el paso 3.
+
+
+
+```powershell
+
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+
+```
+
+
 
 | Método | Ruta | Descripción |
+
 |--------|------|-------------|
+
 | GET | `/health` | Estado warehouse y modelos |
+
 | GET | `/olap/meta` | Ejes y vistas disponibles |
-| GET | `/olap/kpis` | KPIs globales (`vw_olap_kpis_global`) |
-| GET | `/olap/aggregate/{axis}` | Agregados por eje (`ramo`, `ur`, `entidad`, …) |
-| GET | `/olap/star` | Detalle filtrable (`vw_olap_star`) |
-| GET | `/olap/dimensions/{dim}` | Valores para filtros del frontend |
-| GET | `/predict/schema` | Columnas de features para formulario |
+
+| GET | `/olap/kpis` | KPIs globales |
+
+| GET | `/olap/aggregate/{axis}` | Agregados (`ramo`, `ur`, `entidad`, `capitulo`, `programa`, `fuente`, `banda`, `tipo_gasto`) |
+
+| GET | `/olap/star` | Detalle filtrable |
+
+| GET | `/olap/dimensions/{dim}` | Valores para filtros UI |
+
+| GET | `/predict/schema` | Features del formulario |
+
 | POST | `/predict/regression` | Predicción `ratio_ejecucion` |
+
 | POST | `/predict/classification` | Predicción `alta_ejecucion` |
 
-Pruebas: `pytest tests/test_api.py -q`
 
-### Frontend React (fase 6)
 
-Requiere la API en ejecución. El cliente usa `VITE_API_BASE_URL` (por defecto `http://127.0.0.1:8000`) o el proxy de Vite en desarrollo.
+Documentación: `api/README.md` · Swagger: http://127.0.0.1:8000/docs
+
+
+
+### 6. Frontend React (`frontend/`)
+
+
+
+En **otra terminal**, con la API en ejecución:
+
 
 
 ```powershell
+
 cd frontend
+
 copy .env.example .env
+
 npm install
+
 npm run dev
-# Abrir http://localhost:5173
+
 ```
 
-| Vista | Función |
-|-------|---------|
-| Exploración OLAP | KPIs globales, agregados por eje (ramo, UR, entidad, …), gráfico y tabla desde `/olap/*` |
-| Predicción ML | Formulario dinámico desde `/predict/schema` y resultados en vivo de regresión + clasificación |
 
-Build producción: `npm run build` → carpeta `frontend/dist`.
+
+Abrir http://localhost:5173
+
+
+
+| Vista | Función |
+
+|-------|---------|
+
+| Exploración OLAP | KPIs, agregados por eje, gráfico y tabla vía `/olap/*` |
+
+| Predicción ML | Formulario desde `/predict/schema`; regresión + clasificación en vivo |
+
+
+
+Build producción: `npm run build` → `frontend/dist` · Detalle: `frontend/README.md` · Prueba externa predicción: `frontend/PRUEBA_PREDICCION_EXTERNA.md`
+
+
+
+---
+
+
+
+## Pruebas automatizadas
+
+
+
+Desde la raíz (usa `pytest.ini` + `tests/conftest.py`):
+
+
+
+```powershell
+
+pytest tests -q
+
+```
+
+
+
+| Archivo | Qué valida |
+
+|---------|------------|
+
+| `tests/test_warehouse.py` | Esquema y vistas OLAP |
+
+| `tests/test_ml.py` | Carga de frame y política de features |
+
+| `tests/test_api.py` | Contratos `/health`, OLAP e inferencia |
+
+
+
+---
+
+
+
+## Estado de fases
+
+
+
+| Fase | Carpeta | Estado |
+
+|------|---------|--------|
+
+| 1 Datos | `data/` | Implementado |
+
+| 2 Warehouse | `warehouse/` | Implementado |
+
+| 3 EDA | `notebooks/` | `01_data_understanding.ipynb` |
+
+| 4 ML | `ml/` | Implementado (requiere `python -m ml` local) |
+
+| 5 API | `api/` | Implementado |
+
+| 6 Frontend | `frontend/` | Implementado |
+
+| 7 Reporte | `report/` | PDF vía `report/build_pdf.py` |
+
+
+
+---
+
+
 
 ## Estructura del repositorio
 
+
+
 ```
+
 proyecto_corte_1_full_stack_233298_cruz_jimenez_julio_alberto/
-├── data/
-│   ├── raw/              # CSV fuente (PEF)
-│   └── processed/        # Salidas ETL listas para warehouse/ML
-├── warehouse/            # SQL, build DuckDB, vistas OLAP
-├── notebooks/            # EDA y validación analítica
-├── ml/
-│   └── artifacts/        # Modelos y preprocessors serializados (.gitignore)
+
+├── data/                 # Limpieza CSV → parquet + perfil
+
+├── warehouse/            # ETL DuckDB + vistas OLAP
+
+├── notebooks/            # EDA reproducible
+
+├── ml/artifacts/         # Modelos (generados; no versionar en git si son pesados)
+
 ├── api/                  # FastAPI
+
 ├── frontend/             # React + Vite
-├── report/               # PDF e imágenes del informe
+
+├── report/               # build_pdf.py + PDF + figures/
+
+├── tests/
+
 ├── .env.example
+
 ├── requirements.txt
+
 ├── AI_USAGE.md
+
 └── README.md
+
 ```
 
-## Objetivos de modelado (plan)
 
-- **Regresión:** `ratio_ejecucion` o `log1p(monto_pagado)` con variables estructurales/presupuestales sin fuga.
-- **Clasificación:** `alta_ejecucion` (umbral sobre ratio) o `sin_pago` (pagado = 0 con modificado > 0).
+
+---
+
+
+
+## Objetivos de modelado
+
+
+
+- **Regresión:** predecir `ratio_ejecucion` con montos **aprobado/modificado** y dimensiones estructurales (sin `monto_pagado`).
+
+- **Clasificación:** `alta_ejecucion` (umbral 0.80 sobre ratio observado en entrenamiento; excluido como feature).
+
+
+
+Política anti-leakage: ver `ml/config.py` → `LEAKAGE_COLUMNS`.
+
+
+
+---
+
+
 
 ## Limitaciones conocidas
 
-- Snapshot 2026: sin serie temporal multianual en la fuente actual.
-- Dominio presupuestal complejo: consultar glosario en el informe cuando esté disponible.
+
+
+- **Snapshot 2026:** un solo ciclo; no hay serie temporal multianual.
+
+- **Desbalance:** `alta_ejecucion` ~8–9 % de positivos; métricas PR-AUC / recall relevantes.
+
+- **Colinealidad** entre montos presupuestales puede inflar R² en regresión.
+
+- **Dominio presupuestal:** glosario y contexto en `data/PEF_PERFIL_Y_LIMPIEZA.md` e informe PDF.
+
+
+
+---
+
+
 
 ## Declaración de IA
 
-Ver `AI_USAGE.md`.
+
+
+Ver `AI_USAGE.md` (uso de Cursor Composer por componente y validación manual).
+
+
+
+---
+
+
+
+## Referencia rápida (todo el stack)
+
+
+
+```powershell
+
+.\venv\Scripts\Activate.ps1
+
+python -m data.run_cleaning
+
+python -m warehouse.build
+
+python -m ml
+
+python report/build_pdf.py
+
+pytest tests -q
+
+# Terminal 1:
+
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+
+# Terminal 2:
+
+cd frontend; npm run dev
+
+```
+

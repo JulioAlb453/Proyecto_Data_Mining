@@ -4,6 +4,8 @@ Configuración de tareas ML: targets, filtros y política anti-leakage.
 
 from __future__ import annotations
 
+import os
+
 # Filtro alineado con data.pef_cleaning.apply_analytical_filter
 MODELING_FILTER = "filtro_modelado_programable"
 
@@ -89,4 +91,6 @@ LOW_CARDINALITY_NUMERIC = (
 
 RANDOM_STATE = 42
 TEST_SIZE = 0.2
-CV_FOLDS = 5
+CV_FOLDS = 3 if os.getenv("ML_FAST", "").lower() in ("1", "true", "yes") else 5
+ML_FAST = os.getenv("ML_FAST", "").lower() in ("1", "true", "yes")
+ML_SAMPLE_SIZE = int(os.getenv("ML_SAMPLE_SIZE", "0") or "0")

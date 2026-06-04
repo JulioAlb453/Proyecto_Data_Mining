@@ -37,6 +37,7 @@ def test_no_leakage_in_features(warehouse_available: bool) -> None:
     assert not overlap, f"Fuga en features: {overlap}"
 
 
+@pytest.mark.slow
 def test_training_artifacts(warehouse_available: bool) -> None:
     if not warehouse_available:
         pytest.skip("warehouse.duckdb no construido")

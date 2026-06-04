@@ -4,6 +4,7 @@ Carga del dataset de modelado desde warehouse DuckDB o parquet analítico.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import duckdb
@@ -120,15 +121,17 @@ def load_modeling_frame(
     """
     paths = get_paths()
     db = db_path or paths["warehouse_db"]
-    if db.exists():
-        return load_from_warehouse(db)
+    force_warehouse = os.getenv("ML_PREFER_WAREHOUSE", "").lower() in ("1", "true", "yes")
 
     processed = load_from_processed()
-    if processed is not None:
+    if processed is not None and not force_warehouse:
         if "banda_ejecucion" in processed.columns:
             processed = processed.copy()
             processed["banda_ejecucion"] = processed["banda_ejecucion"].astype(str)
         return processed
+
+    if db.exists():
+        return load_from_warehouse(db)
 
     raw = load_raw_pef(csv_path)
     limpio = clean_pef(raw)

@@ -1,0 +1,8 @@
+{
+  "tipo_gasto": "PROGRAMABLE",
+  "monto_aprobado": 1000000,
+  "monto_modificado": 1000000,
+  "monto_aprobado_mensual": 100000,
+  "monto_modificado_mensual": 100000,
+  "ciclo": 2026
+}

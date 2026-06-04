@@ -94,8 +94,10 @@ def test_predict_schema(client):
 )
 def test_predict_regression_with_artifacts(client):
     schema = client.get("/predict/schema").json()
-    cols = schema["feature_columns"]
-    payload = {c: 0 for c in cols}
+    numeric_cols = schema["numeric_features"]
+    categorical_cols = schema["categorical_features"]
+    payload = {c: 0 for c in numeric_cols}
+    payload.update({c: "DESCONOCIDO" for c in categorical_cols})
     if "tipo_gasto" in payload:
         payload["tipo_gasto"] = "PROGRAMABLE"
     if "monto_modificado" in payload:

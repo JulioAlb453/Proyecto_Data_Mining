@@ -19,6 +19,8 @@ uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 
 Abrir http://localhost:5173
 
+**Prueba externa de predicción:** ver [PRUEBA_PREDICCION_EXTERNA.md](./PRUEBA_PREDICCION_EXTERNA.md) (casos A/B/C con datos y resultados esperados).
+
 ## Variables
 
 | Variable | Descripción |
