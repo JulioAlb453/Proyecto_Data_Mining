@@ -1,8 +1,33 @@
-# Frontend (React)
+# Frontend PEF — React + Vite
 
-Panel de exploración presupuestal (consultas dinámicas a la API) y formulario de predicción en tiempo real.
+Panel de exploración OLAP y predicción ML conectado a la API FastAPI.
 
-- Sin sustituir el backend con resultados precocinados ni imágenes estáticas.
-- Variable `VITE_API_BASE_URL` en `.env` / `.env.local` del cliente.
+## Arranque
 
-Se inicializará con Vite + React en una fase posterior del plan.
+```powershell
+cd frontend
+copy .env.example .env
+npm install
+npm run dev
+```
+
+En otra terminal, con warehouse y (opcional) modelos ML listos:
+
+```powershell
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Abrir http://localhost:5173
+
+## Variables
+
+| Variable | Descripción |
+|----------|-------------|
+| `VITE_API_BASE_URL` | URL de la API (vacío = proxy Vite en dev) |
+
+## Build
+
+```powershell
+npm run build
+npm run preview
+```

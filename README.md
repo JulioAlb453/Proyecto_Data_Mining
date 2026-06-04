@@ -86,11 +86,25 @@ uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 
 Pruebas: `pytest tests/test_api.py -q`
 
-### Frontend (referencia)
+### Frontend React (fase 6)
+
+Requiere la API en ejecución. El cliente usa `VITE_API_BASE_URL` (por defecto `http://127.0.0.1:8000`) o el proxy de Vite en desarrollo.
+
 
 ```powershell
-# cd frontend && npm install && npm run dev
+cd frontend
+copy .env.example .env
+npm install
+npm run dev
+# Abrir http://localhost:5173
 ```
+
+| Vista | Función |
+|-------|---------|
+| Exploración OLAP | KPIs globales, agregados por eje (ramo, UR, entidad, …), gráfico y tabla desde `/olap/*` |
+| Predicción ML | Formulario dinámico desde `/predict/schema` y resultados en vivo de regresión + clasificación |
+
+Build producción: `npm run build` → carpeta `frontend/dist`.
 
 ## Estructura del repositorio
 
