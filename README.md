@@ -31,7 +31,7 @@ copy .env.example .env
 | 1 | `data/`, `data/processed` | Ingesta y limpieza del CSV PEF (`python -m data.run_cleaning`) |
 | 2 | `warehouse/` | ETL → `warehouse.duckdb` (hechos + dimensiones + vistas OLAP) |
 | 3 | `notebooks/` | EDA reproducible, variables derivadas (`ratio_ejecucion`, bandas de ejecución) |
-| 4 | `ml/` | Entrenamiento, evaluación y serialización de modelos |
+| 4 | `ml/` | Entrenamiento, evaluación y serialización de modelos (`python -m ml`) |
 | 5 | `api/` | Endpoints OLAP e inferencia (FastAPI + DuckDB) |
 | 6 | `frontend/` | Panel exploratorio y formulario de predicción en vivo |
 | 7 | `report/` | Informe PDF técnico y figuras |
@@ -53,6 +53,16 @@ python -m warehouse.build
 ```
 
 Requiere CSV en `PEF_RAW_CSV` o `data/processed/pef_limpio.parquet` (generado por limpieza).
+
+### Modelado ML (fase 4)
+
+```powershell
+python -m ml
+# Salida: ml/artifacts/*.joblib, training_metrics.json
+# Detalle: ml/README.md
+```
+
+Requiere `warehouse/warehouse.duckdb` (o parquet analítico). Compara ≥2 modelos por tarea con validación cruzada 5-fold.
 
 ### Comandos previstos (referencia)
 
