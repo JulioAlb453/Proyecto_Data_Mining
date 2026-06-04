@@ -32,7 +32,7 @@ copy .env.example .env
 | 2 | `warehouse/` | ETL → `warehouse.duckdb` (hechos + dimensiones + vistas OLAP) |
 | 3 | `notebooks/` | EDA reproducible, variables derivadas (`ratio_ejecucion`, bandas de ejecución) |
 | 4 | `ml/` | Entrenamiento, evaluación y serialización de modelos (`python -m ml`) |
-| 5 | `api/` | Endpoints OLAP e inferencia (FastAPI + DuckDB) |
+| 5 | `api/` | Endpoints OLAP e inferencia (FastAPI + DuckDB) — implementado |
 | 6 | `frontend/` | Panel exploratorio y formulario de predicción en vivo |
 | 7 | `report/` | Informe PDF técnico y figuras |
 
@@ -64,13 +64,31 @@ python -m ml
 
 Requiere `warehouse/warehouse.duckdb` (o parquet analítico). Compara ≥2 modelos por tarea con validación cruzada 5-fold.
 
-### Comandos previstos (referencia)
+### API FastAPI (fase 5)
+
+Requiere `warehouse/warehouse.duckdb`. Para inferencia, ejecutar antes `python -m ml`.
 
 ```powershell
-# API
-# uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-# Frontend (cuando exista package.json)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/health` | Estado warehouse y modelos |
+| GET | `/olap/meta` | Ejes y vistas disponibles |
+| GET | `/olap/kpis` | KPIs globales (`vw_olap_kpis_global`) |
+| GET | `/olap/aggregate/{axis}` | Agregados por eje (`ramo`, `ur`, `entidad`, …) |
+| GET | `/olap/star` | Detalle filtrable (`vw_olap_star`) |
+| GET | `/olap/dimensions/{dim}` | Valores para filtros del frontend |
+| GET | `/predict/schema` | Columnas de features para formulario |
+| POST | `/predict/regression` | Predicción `ratio_ejecucion` |
+| POST | `/predict/classification` | Predicción `alta_ejecucion` |
+
+Pruebas: `pytest tests/test_api.py -q`
+
+### Frontend (referencia)
+
+```powershell
 # cd frontend && npm install && npm run dev
 ```
 
