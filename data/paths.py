@@ -35,8 +35,14 @@ def get_paths() -> dict[str, Path]:
         os.getenv("DATA_PROCESSED_DIR", "data/processed"),
         PROJECT_ROOT,
     )
+    warehouse_db = _resolve_path(
+        os.getenv("WAREHOUSE_DB", "warehouse/warehouse.duckdb"),
+        PROJECT_ROOT,
+    )
     return {
         "project_root": PROJECT_ROOT,
         "raw_csv": raw_csv,
         "processed_dir": processed_dir,
+        "warehouse_db": warehouse_db,
+        "pef_limpio_parquet": processed_dir / "pef_limpio.parquet",
     }

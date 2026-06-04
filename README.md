@@ -29,7 +29,7 @@ copy .env.example .env
 | Fase | Carpeta | Descripción |
 |------|---------|-------------|
 | 1 | `data/`, `data/processed` | Ingesta y limpieza del CSV PEF (`python -m data.run_cleaning`) |
-| 2 | `warehouse/` | ETL SQL → `warehouse.duckdb` (hechos + dimensiones OLAP) |
+| 2 | `warehouse/` | ETL → `warehouse.duckdb` (hechos + dimensiones + vistas OLAP) |
 | 3 | `notebooks/` | EDA reproducible, variables derivadas (`ratio_ejecucion`, bandas de ejecución) |
 | 4 | `ml/` | Entrenamiento, evaluación y serialización de modelos |
 | 5 | `api/` | Endpoints OLAP e inferencia (FastAPI + DuckDB) |
@@ -44,12 +44,19 @@ python -m data.run_cleaning
 # Documentación: data/PEF_PERFIL_Y_LIMPIEZA.md · Notebook: notebooks/01_data_understanding.ipynb
 ```
 
+### Warehouse DuckDB (fase 2)
+
+```powershell
+python -m warehouse.build
+# Salida: warehouse/warehouse.duckdb (configurable con WAREHOUSE_DB en .env)
+# Modelo: warehouse/WAREHOUSE_MODELO.md · Vistas: warehouse/sql/02_olap_views.sql
+```
+
+Requiere CSV en `PEF_RAW_CSV` o `data/processed/pef_limpio.parquet` (generado por limpieza).
+
 ### Comandos previstos (referencia)
 
 ```powershell
-# Warehouse (cuando existan scripts)
-# python -m warehouse.build   o scripts en warehouse/sql/
-
 # API
 # uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 
