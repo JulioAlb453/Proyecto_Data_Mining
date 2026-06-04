@@ -11,9 +11,10 @@
 | Herramienta | Modelo / versión | Uso en este proyecto |
 |-------------|------------------|----------------------|
 | **Cursor** | **Composer** | Estructura base del repositorio (`README.md`, `requirements.txt`, `.env.example`, `.gitignore`, carpetas `data/`, `warehouse/`, `notebooks/`, `ml/`, `api/`, `frontend/`, `report/`) según plan de acción del proyecto corte 1. |
+| **Cursor** | **Composer** | Fase data-understanding: módulo `data/pef_cleaning.py`, CLI `data/run_cleaning.py`, documento `data/PEF_PERFIL_Y_LIMPIEZA.md`, notebook `notebooks/01_data_understanding.ipynb`. Validación manual pendiente de cifras en informe final. |
 
 ---
 
 ## Componentes pendientes de declarar
 
-A medida que se implementen warehouse, EDA, modelado, API, frontend e informe PDF, se actualizará esta tabla con el detalle por componente (qué se generó con asistencia de IA y qué se validó manualmente).
+Warehouse, modelado, API, frontend e informe PDF (actualizar esta tabla al implementarlos).

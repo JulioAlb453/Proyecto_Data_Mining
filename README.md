@@ -28,13 +28,21 @@ copy .env.example .env
 
 | Fase | Carpeta | Descripción |
 |------|---------|-------------|
-| 1 | `data/raw`, `data/processed` | Ingesta y limpieza del CSV PEF |
+| 1 | `data/`, `data/processed` | Ingesta y limpieza del CSV PEF (`python -m data.run_cleaning`) |
 | 2 | `warehouse/` | ETL SQL → `warehouse.duckdb` (hechos + dimensiones OLAP) |
 | 3 | `notebooks/` | EDA reproducible, variables derivadas (`ratio_ejecucion`, bandas de ejecución) |
 | 4 | `ml/` | Entrenamiento, evaluación y serialización de modelos |
 | 5 | `api/` | Endpoints OLAP e inferencia (FastAPI + DuckDB) |
 | 6 | `frontend/` | Panel exploratorio y formulario de predicción en vivo |
 | 7 | `report/` | Informe PDF técnico y figuras |
+
+### Comprensión y limpieza de datos (fase 1)
+
+```powershell
+python -m data.run_cleaning
+# Salida: data/processed/pef_limpio.parquet, pef_analitico.parquet, profile_summary.json
+# Documentación: data/PEF_PERFIL_Y_LIMPIEZA.md · Notebook: notebooks/01_data_understanding.ipynb
+```
 
 ### Comandos previstos (referencia)
 

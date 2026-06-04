@@ -17,6 +17,7 @@ __pycache__/
 # Datos y artefactos generados (mantener raw/ con README; no versionar CSV grande si se copia aquí)
 data/processed/*
 !data/processed/.gitkeep
+!data/processed/README.md
 warehouse/*.duckdb
 ml/artifacts/*
 !ml/artifacts/.gitkeep
