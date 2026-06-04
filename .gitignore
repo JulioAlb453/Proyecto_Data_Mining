@@ -1,0 +1,34 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Entorno local
+.env
+
+# Datos y artefactos generados (mantener raw/ con README; no versionar CSV grande si se copia aquí)
+data/processed/*
+!data/processed/.gitkeep
+warehouse/*.duckdb
+ml/artifacts/*
+!ml/artifacts/.gitkeep
+
+# Reporte LaTeX auxiliar
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.pdf
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
